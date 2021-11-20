@@ -399,7 +399,6 @@ MODINIT_DEFINE (sdlmain_osx)
     PyObject *module;
 
     /* create the module */
-#if PY3
     static struct PyModuleDef _module = {
         PyModuleDef_HEAD_INIT,
         MODPREFIX "sdlmain_osx",
@@ -411,7 +410,6 @@ MODINIT_DEFINE (sdlmain_osx)
         NULL,
         NULL
     };
-#endif
 
     /*imported needed apis*/
     import_pygame_base();
@@ -419,11 +417,6 @@ MODINIT_DEFINE (sdlmain_osx)
         MODINIT_ERROR;
     }
 
-#if PY3
     module = PyModule_Create(&_module);
-#else
-    module = Py_InitModule3(MODPREFIX "sdlmain_osx", macosx_builtins, NULL);
-#endif
-
-MODINIT_RETURN(module);
+    MODINIT_RETURN(module);
 }
