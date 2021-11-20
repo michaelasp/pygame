@@ -224,8 +224,8 @@ pg_rect_dealloc(pgRectObject *self)
 #endif
 }
 
-static GAME_Rect *
-pgRect_FromObject(PyObject *obj, GAME_Rect *temp)
+static SDL_Rect *
+pgRect_FromObject(PyObject *obj, SDL_Rect *temp)
 {
     int val;
     Py_ssize_t length;
@@ -300,7 +300,7 @@ pgRect_FromObject(PyObject *obj, GAME_Rect *temp)
     }
     if (PyObject_HasAttrString(obj, "rect")) {
         PyObject *rectattr;
-        GAME_Rect *returnrect;
+        SDL_Rect *returnrect;
         rectattr = PyObject_GetAttrString(obj, "rect");
         if (PyCallable_Check(rectattr)) /*call if it's a method*/
         {
@@ -331,7 +331,7 @@ pgRect_New4(int x, int y, int w, int h)
 }
 
 static void
-pgRect_Normalize(GAME_Rect *rect)
+pgRect_Normalize(SDL_Rect *rect)
 {
     if (rect->w < 0) {
         rect->x += rect->w;
@@ -345,7 +345,7 @@ pgRect_Normalize(GAME_Rect *rect)
 }
 
 static int
-_pg_do_rects_intersect(GAME_Rect *A, GAME_Rect *B)
+_pg_do_rects_intersect(SDL_Rect *A, SDL_Rect *B)
 {
     if (A->w == 0 || A->h == 0 || B->w == 0 || B->h == 0) {
         // zero sized rects should not collide with anything #1197
@@ -429,8 +429,8 @@ pg_rect_inflate_ip(pgRectObject *self, PyObject *args)
 
 static PyObject *
 pg_rect_update(pgRectObject* self, PyObject* args) {
-    GAME_Rect temp;
-    GAME_Rect *argrect = pgRect_FromObject(args, &temp);
+    SDL_Rect temp;
+    SDL_Rect *argrect = pgRect_FromObject(args, &temp);
 
     if (argrect == NULL) {
         return RAISE(PyExc_TypeError, "Argument must be rect style object");
@@ -445,7 +445,7 @@ pg_rect_update(pgRectObject* self, PyObject* args) {
 static PyObject *
 pg_rect_union(pgRectObject *self, PyObject *args)
 {
-    GAME_Rect *argrect, temp;
+    SDL_Rect *argrect, temp;
     int x, y, w, h;
 
     if (!(argrect = pgRect_FromObject(args, &temp))) {
@@ -461,7 +461,7 @@ pg_rect_union(pgRectObject *self, PyObject *args)
 static PyObject *
 pg_rect_union_ip(pgRectObject *self, PyObject *args)
 {
-    GAME_Rect *argrect, temp;
+    SDL_Rect *argrect, temp;
     int x, y, w, h;
 
     if (!(argrect = pgRect_FromObject(args, &temp)))
@@ -481,7 +481,7 @@ pg_rect_union_ip(pgRectObject *self, PyObject *args)
 static PyObject *
 pg_rect_unionall(pgRectObject *self, PyObject *args)
 {
-    GAME_Rect *argrect, temp;
+    SDL_Rect *argrect, temp;
     Py_ssize_t loop, size;
     PyObject *list, *obj;
     int t, l, b, r;
@@ -527,7 +527,7 @@ pg_rect_unionall(pgRectObject *self, PyObject *args)
 static PyObject *
 pg_rect_unionall_ip(pgRectObject *self, PyObject *args)
 {
-    GAME_Rect *argrect, temp;
+    SDL_Rect *argrect, temp;
     Py_ssize_t loop, size;
     PyObject *list, *obj;
     int t, l, b, r;
@@ -595,7 +595,7 @@ pg_rect_collidepoint(pgRectObject *self, PyObject *args)
 static PyObject *
 pg_rect_colliderect(pgRectObject *self, PyObject *args)
 {
-    GAME_Rect *argrect, temp;
+    SDL_Rect *argrect, temp;
 
     if (!(argrect = pgRect_FromObject(args, &temp))) {
         return RAISE(PyExc_TypeError, "Argument must be rect style object");
@@ -606,7 +606,7 @@ pg_rect_colliderect(pgRectObject *self, PyObject *args)
 static PyObject *
 pg_rect_collidelist(pgRectObject *self, PyObject *args)
 {
-    GAME_Rect *argrect, temp;
+    SDL_Rect *argrect, temp;
     Py_ssize_t size;
     int loop;
     PyObject *list, *obj;
@@ -648,7 +648,7 @@ pg_rect_collidelist(pgRectObject *self, PyObject *args)
 static PyObject *
 pg_rect_collidelistall(pgRectObject *self, PyObject *args)
 {
-    GAME_Rect *argrect, temp;
+    SDL_Rect *argrect, temp;
     Py_ssize_t size;
     int loop;
     PyObject *list, *obj;
@@ -703,7 +703,7 @@ pg_rect_collidelistall(pgRectObject *self, PyObject *args)
 static PyObject *
 pg_rect_collidedict(pgRectObject *self, PyObject *args)
 {
-    GAME_Rect *argrect, temp;
+    SDL_Rect *argrect, temp;
     Py_ssize_t loop = 0;
     Py_ssize_t values = 0; /* Defaults to expecting keys as rects. */
     PyObject *dict, *key, *val;
@@ -745,7 +745,7 @@ pg_rect_collidedict(pgRectObject *self, PyObject *args)
 static PyObject *
 pg_rect_collidedictall(pgRectObject *self, PyObject *args)
 {
-    GAME_Rect *argrect, temp;
+    SDL_Rect *argrect, temp;
     Py_ssize_t loop = 0;
     Py_ssize_t values = 0; /* Defaults to expecting keys as rects. */
     PyObject *dict, *key, *val;
@@ -799,7 +799,7 @@ pg_rect_collidedictall(pgRectObject *self, PyObject *args)
 static PyObject *
 pg_rect_clip(pgRectObject *self, PyObject *args)
 {
-    GAME_Rect *A, *B, temp;
+    SDL_Rect *A, *B, temp;
     int x, y, w, h;
 
     A = &self->r;
@@ -867,7 +867,7 @@ static PyObject *
 pg_rect_clipline(pgRectObject *self, PyObject *args)
 {
     PyObject *arg1 = NULL, *arg2 = NULL, *arg3 = NULL, *arg4 = NULL;
-    GAME_Rect *rect = &self->r, *rect_copy = NULL;
+    SDL_Rect *rect = &self->r, *rect_copy = NULL;
     int x1 = 0, y1 = 0, x2 = 0, y2 = 0;
 
     if (!PyArg_ParseTuple(args, "O|OOO", &arg1, &arg2, &arg3, &arg4)) {
@@ -960,7 +960,7 @@ static PyObject *
 pg_rect_contains(pgRectObject *self, PyObject *args)
 {
     int contained;
-    GAME_Rect *argrect, temp;
+    SDL_Rect *argrect, temp;
 
     if (!(argrect = pgRect_FromObject(args, &temp))) {
         return RAISE(PyExc_TypeError, "Argument must be rect style object");
@@ -978,7 +978,7 @@ pg_rect_contains(pgRectObject *self, PyObject *args)
 static PyObject *
 pg_rect_clamp(pgRectObject *self, PyObject *args)
 {
-    GAME_Rect *argrect, temp;
+    SDL_Rect *argrect, temp;
     int x, y;
 
     if (!(argrect = pgRect_FromObject(args, &temp))) {
@@ -1011,7 +1011,7 @@ pg_rect_clamp(pgRectObject *self, PyObject *args)
 static PyObject *
 pg_rect_fit(pgRectObject *self, PyObject *args)
 {
-    GAME_Rect *argrect, temp;
+    SDL_Rect *argrect, temp;
     int w, h, x, y;
     float xratio, yratio, maxratio;
 
@@ -1035,7 +1035,7 @@ pg_rect_fit(pgRectObject *self, PyObject *args)
 static PyObject *
 pg_rect_clamp_ip(pgRectObject *self, PyObject *args)
 {
-    GAME_Rect *argrect, temp;
+    SDL_Rect *argrect, temp;
     int x, y;
 
     if (!(argrect = pgRect_FromObject(args, &temp))) {
@@ -1374,7 +1374,7 @@ pg_rect_coerce(PyObject **o1, PyObject **o2)
 {
     PyObject *new1;
     PyObject *new2;
-    GAME_Rect *r, temp;
+    SDL_Rect *r, temp;
 
     if (pgRect_Check(*o1)) {
         new1 = *o1;
@@ -1451,7 +1451,7 @@ pg_rect_str(pgRectObject *self)
 static PyObject *
 pg_rect_richcompare(PyObject *o1, PyObject *o2, int opid)
 {
-    GAME_Rect *o1rect, *o2rect, temp1, temp2;
+    SDL_Rect *o1rect, *o2rect, temp1, temp2;
     int cmp;
 
     o1rect = pgRect_FromObject(o1, &temp1);
@@ -2074,8 +2074,8 @@ static PyTypeObject pgRect_Type = {
 static int
 pg_rect_init(pgRectObject *self, PyObject *args, PyObject *kwds)
 {
-    GAME_Rect temp;
-    GAME_Rect *argrect = pgRect_FromObject(args, &temp);
+    SDL_Rect temp;
+    SDL_Rect *argrect = pgRect_FromObject(args, &temp);
 
     if (argrect == NULL) {
         PyErr_SetString(PyExc_TypeError, "Argument must be rect style object");
