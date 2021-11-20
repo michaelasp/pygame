@@ -94,7 +94,7 @@ _pg_is_exception_class(PyObject *obj, void **optr)
         oname = tmp;
         PyErr_Format(PyExc_TypeError,
                      "Expected an exception class: got %.1024s",
-                     Bytes_AS_STRING(oname));
+                     PyBytes_AS_STRING(oname));
         Py_DECREF(oname);
         return 0;
     }
@@ -260,7 +260,7 @@ pg_EncodeString(PyObject *obj, const char *encoding, const char *errors,
         Py_RETURN_NONE;
     }
     
-    if (Bytes_Check(ret)) {
+    if (PyBytes_Check(ret)) {
         return ret;
     }
 
@@ -271,12 +271,12 @@ pg_EncodeString(PyObject *obj, const char *encoding, const char *errors,
 static PyObject *
 pg_EncodeFilePath(PyObject *obj, PyObject *eclass)
 {
-    PyObject *result = pg_EncodeString(obj, UNICODE_DEF_FS_CODEC,
+    PyObject *result = pg_EncodeString(obj, Py_FileSystemDefaultEncoding,
                                             UNICODE_DEF_FS_ERROR, eclass);
     if (result == NULL || result == Py_None) {
         return result;
     }
-    if ((size_t)Bytes_GET_SIZE(result) != strlen(Bytes_AS_STRING(result))) {
+    if ((size_t)PyBytes_GET_SIZE(result) != strlen(PyBytes_AS_STRING(result))) {
         if (eclass != NULL) {
             Py_DECREF(result);
             result = pg_EncodeString(obj, NULL, NULL, NULL);
@@ -285,7 +285,7 @@ pg_EncodeFilePath(PyObject *obj, PyObject *eclass)
             }
             PyErr_Format(eclass,
                          "File path '%.1024s' contains null characters",
-                         Bytes_AS_STRING(result));
+                         PyBytes_AS_STRING(result));
             Py_DECREF(result);
             return NULL;
         }
@@ -674,16 +674,16 @@ _pg_rw_read(SDL_RWops *context, void *ptr, size_t size, size_t maxnum)
         goto end;
     }
 
-    if (!Bytes_Check(result)) {
+    if (!PyBytes_Check(result)) {
         Py_DECREF(result);
         PyErr_Print();
         retval = -1;
         goto end;
     }
 
-    retval = Bytes_GET_SIZE(result);
+    retval = PyBytes_GET_SIZE(result);
     if (retval) {
-        memcpy(ptr, Bytes_AsString(result), retval);
+        memcpy(ptr, PyBytes_AsString(result), retval);
         retval /= size;
     }
 
@@ -712,7 +712,7 @@ _rwops_from_pystr(PyObject *obj)
             return NULL;
         }
         if (oencoded != Py_None) {
-            encoded = Bytes_AS_STRING(oencoded);
+            encoded = PyBytes_AS_STRING(oencoded);
             rw = SDL_RWFromFile(encoded, "rb");
             ext = strrchr(encoded, '.');        
             if (ext && strlen(ext) > 1) {
@@ -868,7 +868,7 @@ MODINIT_DEFINE(rwobject)
     /* Create the module and add the functions */
     module = PyModule_Create(&_module);
     if (module == NULL) {
-        MODINIT_ERROR;
+        return NULL;
     }
     dict = PyModule_GetDict(module);
 
@@ -882,14 +882,14 @@ MODINIT_DEFINE(rwobject)
     c_api[6] = pgRWops_GetFileExtension;
     apiobj = encapsulate_api(c_api, "rwobject");
     if (apiobj == NULL) {
-        DECREF_MOD(module);
-        MODINIT_ERROR;
+        Py_DECREF(module);
+        return NULL;
     }
     ecode = PyDict_SetItemString(dict, PYGAMEAPI_LOCAL_ENTRY, apiobj);
     Py_DECREF(apiobj);
     if (ecode == -1) {
-        DECREF_MOD(module);
-        MODINIT_ERROR;
+        Py_DECREF(module);
+        return NULL;
     }
 
     /* import os, don't sweat if it errors, it will be checked before use */
@@ -897,5 +897,5 @@ MODINIT_DEFINE(rwobject)
     if (os_module == NULL)
         PyErr_Clear();
 
-    MODINIT_RETURN(module);
+    return module;
 }
