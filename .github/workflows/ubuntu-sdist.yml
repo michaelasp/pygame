@@ -1,4 +1,4 @@
-name: Ubuntu sdist
+name: Ubuntu sdist, format and lint check
 
 # Run CI only when a release is created, on changes to main branch, or any PR 
 # to main. Do not run CI on any other branch. Also, skip any non-source changes 
@@ -42,6 +42,11 @@ jobs:
         sudo apt-get update --fix-missing
         sudo apt-get upgrade
         sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libfreetype6-dev libportmidi-dev libjpeg8-dev python3-setuptools python3-dev python3-numpy
+        python3 -m pip install pylint black clang-format
+
+    - name: Formatting and Linting
+      if: matrix.os == 'ubuntu-20.04' # only lint once
+      run: python3 setup.py lint
 
     - name: Make sdist and install it
       run: |
